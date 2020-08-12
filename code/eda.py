@@ -179,9 +179,9 @@ def eda(sentence, alpha_sr=0.1, alpha_ri=0.1, alpha_rs=0.1, p_rd=0.1, num_aug=9)
 	
 	augmented_sentences = []
 	num_new_per_technique = int(num_aug/4)+1
-	n_sr = max(1, int(alpha_sr*num_words))
-	n_ri = max(1, int(alpha_ri*num_words))
-	n_rs = max(1, int(alpha_rs*num_words))
+	n_sr = int(alpha_sr*num_words)
+	n_ri = int(alpha_ri*num_words)
+	n_rs = int(alpha_rs*num_words)
 
 	#sr
 	for _ in range(num_new_per_technique):

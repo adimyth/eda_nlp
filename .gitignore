@@ -14,3 +14,13 @@ outputs_f4*
 baseline_cnn*
 baseline_rnn*
 
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/

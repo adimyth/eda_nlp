@@ -38,29 +38,24 @@ python
 ```
 
 ### Run EDA
+To create an augmented version of your data, run `augment.py`. Simply change, the file name to load inside `__main__` function & specify - *text* & *label* column names.
 
-You can easily write your own implementation, but this one takes input files in the format `label\tsentence` (note the `\t`). So for instance, your input file should look like this (example from stanford sentiment treebank):
+In a change from the original implementation at - https://github.com/jasonwei20/eda_nlp. I've created a `config.py` file to specify the `alpha` values for each of the 4 augmentation techniques as well as `num_aug`.
 
-```
-1   neil burger here succeeded in making the mystery of four decades back the springboard for a more immediate mystery in the present 
-0   it is a visual rorschach test and i must have failed 
-0   the only way to tolerate this insipid brutally clueless film might be with a large dose of painkillers
-...
-```
-
-Now place this input file into the `data` folder. Run 
-
-```bash
-python code/augment.py --input=<insert input filename>
+```python
+* alpha_sr - percentage of word to apply synonym replacement in a sentences
+* alpha_ri - percentage of word to apply random insertion in a sentences
+* alpha_rs - percentage of word to apply random swap in a sentences
+* p_rd - probability of a word being randomly deleted
+* num_aug - number of augmentations to apply
 ```
 
-The default output filename will append `eda_` to the front of the input filename, but you can specify your own with `--output`. You can also specify the number of generated augmented sentences per original sentence using `--num_aug` (default is 9). Furthermore, you can specify the alpha parameter, which approximately means the percent of words in the sentence that will be changed (default is `0.1` or `10%`). So for example, if your input file is `sst2_train.txt` and you want to output to `sst2_augmented.txt` with `16` augmented sentences per original sentence and `alpha=0.05`, you would do:
+Inside, `augment.py` run the `gen_eda` function. It accepts the following parameters - 
+* `data` - Dataframe containing text and label
+* `text_col` - Column containing sentences
+* `label_col` - Label column 
 
-```bash
-python code/augment.py --input=sst2_train.txt --output=sst2_augmented.txt --num_aug=16 --alpha=0.05
-```
-
-Note that at least one augmentation operation is applied per augmented sentence regardless of alpha. So if you do `alpha=0.001` and your sentence only has four words, one augmentation operation will still be performed. Best of luck!
+Best of luck!
 
 # Citation
 If you use EDA in your paper, please cite us:

@@ -1,54 +1,43 @@
 # Easy data augmentation techniques for text classification
 # Jason Wei and Kai Zou
-
+from config import configs
 from eda import *
+import pandas as pd
+from tqdm import tqdm
+import warnings
+warnings.filterwarnings("ignore")
 
-#arguments to be parsed from command line
-import argparse
-ap = argparse.ArgumentParser()
-ap.add_argument("--input", required=True, type=str, help="input file of unaugmented data")
-ap.add_argument("--output", required=False, type=str, help="output file of unaugmented data")
-ap.add_argument("--num_aug", required=False, type=int, help="number of augmented sentences per original sentence")
-ap.add_argument("--alpha", required=False, type=float, help="percent of words in each sentence to be changed")
-args = ap.parse_args()
 
-#the output file
-output = None
-if args.output:
-    output = args.output
-else:
-    from os.path import dirname, basename, join
-    output = join(dirname(args.input), 'eda_' + basename(args.input))
+def gen_eda(data, text_col, label_col):
+    sentences, labels = [], []
+    for idx, row in tqdm(data.iterrows()):
+        label = row[label_col]
+        sentence = row[text_col]
+        aug_sentences = eda(sentence, 
+                            alpha_sr=configs.alpha_sr, 
+                            alpha_ri=configs.alpha_ri, 
+                            alpha_rs=configs.alpha_rs, 
+                            p_rd=configs.p_rd,
+                            num_aug=configs.num_aug)
+        sentences.append(aug_sentences)
+        labels.append([label]*len(aug_sentences))
+    
+    sentences = [j for sub in sentences for j in sub] 
+    labels = [j for sub in labels for j in sub] 
+    # strip & remove duplicates
+    aug_data = pd.DataFrame({text_col: sentences, label_col: labels})
+    aug_data[text_col] = aug_data[text_col].str.strip()
+    aug_data = aug_data.drop_duplicates()
+    return aug_data
 
-#number of augmented sentences to generate per original sentence
-num_aug = 9 #default
-if args.num_aug:
-    num_aug = args.num_aug
 
-#how much to change each sentence
-alpha = 0.1#default
-if args.alpha:
-    alpha = args.alpha
-
-#generate more data with standard augmentation
-def gen_eda(train_orig, output_file, alpha, num_aug=9):
-
-    writer = open(output_file, 'w')
-    lines = open(train_orig, 'r').readlines()
-
-    for i, line in enumerate(lines):
-        parts = line[:-1].split('\t')
-        label = parts[0]
-        sentence = parts[1]
-        aug_sentences = eda(sentence, alpha_sr=alpha, alpha_ri=alpha, alpha_rs=alpha, p_rd=alpha, num_aug=num_aug)
-        for aug_sentence in aug_sentences:
-            writer.write(label + "\t" + aug_sentence + '\n')
-
-    writer.close()
-    print("generated augmented sentences with eda for " + train_orig + " to " + output_file + " with num_aug=" + str(num_aug))
-
-#main function
 if __name__ == "__main__":
+    data = pd.read_csv("data/train.csv")
+    print("Original DataFrame")
+    print(f"Shape: {data.shape}\nSample: \n{data.head()}\n\n")
 
-    #generate augmented sentences and output into a new file
-    gen_eda(args.input, output, alpha=alpha, num_aug=num_aug)
+    aug_data = gen_eda(data, "text", "target", "id")
+    aug_data = aug_data.drop_duplicates()
+    print("Augmented DataFrame")
+    print(f"Shape: {aug_data.shape}\nSample: \n{aug_data.head(10)}")
+    aug_data.to_csv("data/train_augmented.csv", index=False)
